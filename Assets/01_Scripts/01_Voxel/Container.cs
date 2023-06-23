@@ -11,7 +11,9 @@ using UnityEngine;
 public class Container : MonoBehaviour
 {
     public Vector3 containerPosition;
-    private MeshData meshData;
+
+    private Dictionary<Vector3, Voxel> data;
+    private MeshData meshData = new MeshData();
 
     private MeshRenderer meshRenderer;
     private MeshFilter meshFilter;
@@ -20,8 +22,14 @@ public class Container : MonoBehaviour
     public void Initialized(Material mat, Vector3 position)
     {
         ConfigureComponents();
+        data = new Dictionary<Vector3, Voxel>();
         meshRenderer.sharedMaterial = mat;
         containerPosition = position;
+    }
+
+    public void ClearData()
+    {
+        data.Clear();
     }
 
     private void ConfigureComponents()
@@ -35,31 +43,59 @@ public class Container : MonoBehaviour
     {
         meshData.ClearData();
 
-        Vector3 blockPos =  new Vector3(8,8,8);
-        Voxel block = new Voxel() { ID = 1 };
+        Vector3 blockPos;
+        Voxel block;
+
 
         int counter = 0;
         Vector3[] faceVertices = new Vector3[4];
         Vector2[] faceUVs = new Vector2[4];
 
-        for(int i = 0; i < 6; i++)
+        VoxelColor voxelColor;
+        Color voxelColorAlpha;
+        Vector2 voxelSmoothness;
+
+        foreach(KeyValuePair<Vector3, Voxel> kvp in data)
         {
-            // Draw this Face;
+            if (kvp.Value.ID == 0)
+                continue;
 
-            // Collect the appropriate vertices from the default vertices and add the block position.
-            for(int j = 0; j < 4; j++)
+            blockPos = kvp.Key;
+            block = kvp.Value;
+
+            voxelColor = WorldManager.Instance.WorldColors[block.ID - 1];
+            voxelColorAlpha = voxelColor.color;
+            voxelColorAlpha.a = 1;
+            voxelSmoothness = new Vector3(voxelColor.metallic, voxelColor.smoothness);
+
+            // Iterate over each face direction;
+            for (int i = 0; i < 6; i++)
             {
-                faceVertices[j] = voxelVertices[voxelVertexIndex[i, j]] + blockPos;
-                faceUVs[j] = voxelUVs[j];
-            }
+                // voxelFaceChecks 방향으로 Mesh가 존재하면 다시 반복.
+                if (this[blockPos + voxelFaceChecks[i]].isSolid)
+                    continue;
 
-            for(int j = 0; j  < 6; j++)
-            {
-                meshData.vertices.Add(faceVertices[voxelTris[i, j]]);
-                meshData.UVs.Add(faceUVs[voxelTris[i, j]]);
 
-                meshData.triangles.Add(counter++);
+                // Draw this Face;
 
+                // Collect the appropriate vertices from the default vertices and add the block position.
+                for (int j = 0; j < 4; j++)
+                {
+                    faceVertices[j] = voxelVertices[voxelVertexIndex[i, j]] + blockPos;
+                    faceUVs[j] = voxelUVs[j];
+                }
+
+                for (int j = 0; j < 6; j++)
+                {
+                    meshData.vertices.Add(faceVertices[voxelTris[i, j]]);
+                    meshData.UVs.Add(faceUVs[voxelTris[i, j]]);
+
+                    meshData.colors.Add(voxelColorAlpha);
+                    meshData.UVs2.Add(voxelSmoothness);
+
+                    meshData.triangles.Add(counter++);
+
+                }
             }
         }
     }
@@ -75,8 +111,31 @@ public class Container : MonoBehaviour
 
         if (meshData.vertices.Count > 3)
             meshCollider.sharedMesh = meshData.mesh;
+        //data[new Vector3(8, 8, 8)]
 
     }
+
+    public Voxel this [Vector3 index]
+    {
+        get
+        {
+            if (data.ContainsKey(index))
+                return data[index];
+            else
+                return emptyVoxel;
+        }
+
+        set
+        {
+            if (data.ContainsKey(index))    
+                data[index] = value;
+            else
+                data.Add(index, value);
+        }
+    }
+
+    public static Voxel emptyVoxel = new Voxel() { ID = 0 };    
+
 
     #region meshData
     public struct MeshData
@@ -85,6 +144,8 @@ public class Container : MonoBehaviour
         public List<Vector3> vertices;
         public List<int> triangles;
         public List<Vector2> UVs;
+        public List<Vector2> UVs2;
+        public List<Color> colors;
 
         public bool Initialized;
 
@@ -95,6 +156,8 @@ public class Container : MonoBehaviour
                 vertices = new List<Vector3>();
                 triangles = new List<int>();
                 UVs = new List<Vector2>();
+                UVs2 = new List<Vector2>();
+                colors = new List<Color>();
 
                 Initialized = true;
                 mesh = new Mesh();
@@ -104,6 +167,8 @@ public class Container : MonoBehaviour
                 vertices.Clear();
                 triangles.Clear();
                 UVs.Clear();
+                UVs2.Clear();
+                colors.Clear();
                 mesh.Clear();
             }
         }
@@ -112,7 +177,10 @@ public class Container : MonoBehaviour
         {
             mesh.SetVertices(vertices);
             mesh.SetTriangles(triangles, 0, true);
+            mesh.SetColors(colors);
+
             mesh.SetUVs(0, UVs);
+            mesh.SetUVs(2, UVs2);
 
             mesh.Optimize();
 
@@ -139,6 +207,16 @@ public class Container : MonoBehaviour
         new Vector3 (1, 0, 1), // 5 
         new Vector3 (0, 1, 1), // 6
         new Vector3 (1, 1, 1), // 7
+    };
+
+    static readonly Vector3[] voxelFaceChecks = new Vector3[6]
+    {
+        new Vector3(0, 0, -1),  // back
+        new Vector3(0, 0, 1),   // front
+        new Vector3(-1, 0, 0),  // left
+        new Vector3(1, 0, 0),   // right
+        new Vector3(0, -1, 0),  // bottom
+        new Vector3(0, 1, 0)    // top
     };
 
     static readonly int[,] voxelVertexIndex = new int[6, 4]
