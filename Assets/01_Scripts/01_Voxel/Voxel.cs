@@ -2,9 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Voxel 
+public struct Voxel 
 {
-    public byte ID;
+    public int ID;
 
     public bool isSolid
     { 
