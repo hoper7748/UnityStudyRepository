@@ -56,9 +56,14 @@ namespace ChatUIProject
             //InputField.ActivateInputField();
             if (Input.GetKeyDown(KeyCode.Return))
             {
-                Chat(true, InputField.text, "me");
-                InputField.text = "";
+                InputChat();
             }
+        }
+
+        public void InputChat()
+        {
+            Chat(true, InputField.text, "me");
+            InputField.text = "";
         }
 
         public void Chat(bool isSend, string text, string user)
