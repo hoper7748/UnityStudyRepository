@@ -1,16 +1,21 @@
 {
-	"name": "NewAssembly",
-	"references": [
-		"SpatialSys.UnitySDK",
-		"Unity.TextMeshPro"
-	],
-	"includePlatforms": [],
-	"excludePlatforms": [],
-	"allowUnsafeCode": false,
-	"overrideReferences": false,
-	"precompiledReferences": [],
-	"autoReferenced": true,
-	"defineConstraints": [],
-	"versionDefines": [],
-	"noEngineReferences": false
+    "name": "NewAssembly",
+    "rootNamespace": "",
+    "references": [
+        "SpatialSys.UnitySDK",
+        "Unity.TextMeshPro",
+        "Unity.Burst",
+        "Unity.Mathematics",
+        "Unity.Timeline",
+        "Unity.Timeline.Editor"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }
