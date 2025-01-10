@@ -14,7 +14,7 @@ public static class Algorithm
         return GetMaxValue(array.ToArray(), array.Length);
     }
 
-        [BurstCompile]
+    [BurstCompile]
     static float GetMaxValue(float[] array, int len)
     {
         float max = 0f;

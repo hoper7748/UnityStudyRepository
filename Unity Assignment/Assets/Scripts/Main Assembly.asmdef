@@ -2,12 +2,13 @@
     "name": "Main Assembly",
     "rootNamespace": "",
     "references": [
+        "SpatialSys.UnitySDK",
         "Unity.TextMeshPro",
-        "Unity.Burst",
         "Unity.Mathematics",
         "Unity.Timeline",
         "Unity.Timeline.Editor",
-        "SpatialSys.UnitySDK"
+        "Unity.Burst.CodeGen",
+        "Unity.Burst"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
