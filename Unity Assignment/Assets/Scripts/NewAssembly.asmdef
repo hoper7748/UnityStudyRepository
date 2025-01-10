@@ -2,7 +2,6 @@
     "name": "NewAssembly",
     "rootNamespace": "",
     "references": [
-        "SpatialSys.UnitySDK",
         "Unity.TextMeshPro",
         "Unity.Burst",
         "Unity.Mathematics",

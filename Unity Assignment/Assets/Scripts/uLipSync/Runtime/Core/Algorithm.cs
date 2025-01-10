@@ -1,21 +1,21 @@
 ﻿using Unity.Collections;
 using Unity.Mathematics;
 using Unity.Burst;
-using Unity.Collections.LowLevel.Unsafe;
+//using Unity.Collections.LowLevel.Unsafe;
 
 namespace uLipSync
 {
     
 [BurstCompile]
-public static unsafe class Algorithm
+public static class Algorithm
 {
     public static float GetMaxValue(in NativeArray<float> array)
     {
-        return GetMaxValue((float*)array.GetUnsafeReadOnlyPtr(), array.Length);
+        return GetMaxValue(array.ToArray(), array.Length);
     }
-    
-    [BurstCompile]
-    static float GetMaxValue(float* array, int len)
+
+        [BurstCompile]
+    static float GetMaxValue(float[] array, int len)
     {
         float max = 0f;
         for (int i = 0; i < len; ++i)
@@ -27,11 +27,11 @@ public static unsafe class Algorithm
 
     public static float GetRMSVolume(in NativeArray<float> array)
     {
-        return GetRMSVolume((float*)array.GetUnsafeReadOnlyPtr(), array.Length);
+        return GetRMSVolume(array.ToArray(), array.Length);
     }
 
     [BurstCompile]
-    static float GetRMSVolume(float *array, int len)
+    static float GetRMSVolume(float[] array, int len)
     {
         float average = 0f;
         for (int i = 0; i < len; ++i)
@@ -45,14 +45,14 @@ public static unsafe class Algorithm
     {
         output = new NativeArray<float>(input.Length, Allocator.Temp);
         CopyRingBuffer(
-            (float*)input.GetUnsafeReadOnlyPtr(), 
-            (float*)output.GetUnsafePtr(), 
+            input.ToArray(), 
+            output.ToArray(), 
             input.Length, 
             startSrcIndex);
     }
 
     [BurstCompile]
-    static void CopyRingBuffer(float* input, float* output, int len, int startSrcIndex)
+    static void CopyRingBuffer(in float[] input, float[] output, int len, int startSrcIndex)
     {
         for (int i = 0; i < len; ++i)
         {
@@ -62,11 +62,11 @@ public static unsafe class Algorithm
 
     public static void Normalize(ref NativeArray<float> array, float value = 1f)
     {
-        Normalize((float*)array.GetUnsafePtr(), array.Length, value);
+        Normalize(array.ToArray(), array.Length, value);
     }
 
     [BurstCompile]
-    static void Normalize(float* array, int len, float value = 1f)
+    static void Normalize(float[] array, int len, float value = 1f)
     {
         float max = GetMaxValue(array, len);
         if (max < math.EPSILON) return;
@@ -89,11 +89,11 @@ public static unsafe class Algorithm
         var b = new NativeArray<float>(n, Allocator.Temp);
 
         LowPassFilter(
-            (float*)data.GetUnsafePtr(),
+            data.ToArray(),
             data.Length,
             cutoff,
-            (float*)tmp.GetUnsafeReadOnlyPtr(),
-            (float*)b.GetUnsafePtr(),
+            tmp.ToArray(),
+            b.ToArray(),
             n);
 
         tmp.Dispose();
@@ -101,7 +101,7 @@ public static unsafe class Algorithm
     }
 
     [BurstCompile]
-    static void LowPassFilter(float* data, int len, float cutoff, float* tmp, float* b, int bLen)
+    static void LowPassFilter(float[] data, int len, float cutoff, in float[] tmp, float[] b, int bLen)
     {
         for (int i = 0; i < bLen; ++i)
         {
@@ -133,8 +133,8 @@ public static unsafe class Algorithm
             int skip = sampleRate / targetSampleRate;
             output = new NativeArray<float>(input.Length / skip, Allocator.Temp);
             DownSample1(
-                (float*)input.GetUnsafeReadOnlyPtr(), 
-                (float*)output.GetUnsafePtr(), 
+                input.ToArray(), 
+                output.ToArray(), 
                 output.Length,
                 skip);
         }
@@ -144,16 +144,16 @@ public static unsafe class Algorithm
             int n = (int)math.round(input.Length / df);
             output = new NativeArray<float>(n, Allocator.Temp);
             DownSample2(
-                (float*)input.GetUnsafeReadOnlyPtr(), 
+                input.ToArray(), 
                 input.Length,
-                (float*)output.GetUnsafePtr(), 
+                output.ToArray(), 
                 output.Length,
                 df);
         }
     }
 
     [BurstCompile]
-    static void DownSample1(float* input, float* output, int outputLen, int skip)
+    static void DownSample1(in float[] input, float[] output, int outputLen, int skip)
     {
         for (int i = 0; i < outputLen; ++i)
         {
@@ -162,7 +162,7 @@ public static unsafe class Algorithm
     }
 
     [BurstCompile]
-    static void DownSample2(float* input, int inputLen, float* output, int outputLen, float df)
+    static void DownSample2(in float[] input, int inputLen, float[] output, int outputLen, float df)
     {
         for (int j = 0; j < outputLen; ++j)
         {
@@ -180,15 +180,15 @@ public static unsafe class Algorithm
     {
         var tmp = new NativeArray<float>(data, Allocator.Temp);
         PreEmphasis(
-            (float*)data.GetUnsafePtr(),
-            (float*)tmp.GetUnsafeReadOnlyPtr(),
+            data.ToArray(),
+            tmp.ToArray(),
             data.Length,
             p);
         tmp.Dispose();
     }
 
     [BurstCompile]
-    static void PreEmphasis(float* data, float* tmp, int len, float p)
+    static void PreEmphasis(float[] data, in float[] tmp, int len, float p)
     {
         for (int i = 1; i < len; ++i)
         {
@@ -198,11 +198,11 @@ public static unsafe class Algorithm
 
     public static void HammingWindow(ref NativeArray<float> array)
     {
-        HammingWindow((float*)array.GetUnsafePtr(), array.Length);
+        HammingWindow(array.ToArray(), array.Length);
     }
 
     [BurstCompile]
-    static void HammingWindow(float* array, int len)
+    static void HammingWindow(float[] array, int len)
     {
         for (int i = 0; i < len; ++i)
         {
@@ -217,24 +217,25 @@ public static unsafe class Algorithm
         dataWithPadding = new NativeArray<float>(N * 2, Allocator.Temp);
 
         var slice1 = new NativeSlice<float>(dataWithPadding, 0, N / 2);
-        UnsafeUtility.MemSet((float*)slice1.GetUnsafePtr<float>(), 0, sizeof(float) * slice1.Length);
+            System.Array.Clear(slice1.ToArray(), 0, sizeof(float) * slice1.Length);
+        System.Array.Clear(slice1.ToArray(), 0, sizeof(float) * slice1.Length);
 
         var slice2 = new NativeSlice<float>(dataWithPadding, N / 2, N);
         slice2.CopyFrom(data);
 
         var slice3 = new NativeSlice<float>(dataWithPadding, N * 3 / 2, N / 2);
-        UnsafeUtility.MemSet((float*)slice3.GetUnsafePtr<float>(), 0, sizeof(float) * slice1.Length);
+        System.Array.Clear(slice3.ToArray(), 0, sizeof(float) * slice1.Length);
     }
 
     public static void FFT(in NativeArray<float> data, out NativeArray<float> spectrum)
     {
         int N = data.Length;
         spectrum = new NativeArray<float>(N, Allocator.Temp);
-        FFT((float*)data.GetUnsafePtr(), (float*)spectrum.GetUnsafePtr(), N);
+            FFT(data.ToArray() ,spectrum.ToArray(), N);
     }
 
     [BurstCompile]
-    static void FFT(float* data, float* spectrum, int N)
+    static void FFT(float[] data, float[] spectrum, int N)
     {
         var spectrumRe = new NativeArray<float>(N, Allocator.Temp);
         var spectrumIm = new NativeArray<float>(N, Allocator.Temp);
@@ -243,7 +244,7 @@ public static unsafe class Algorithm
         {
             spectrumRe[i] = data[i];
         }
-        _FFT((float*)spectrumRe.GetUnsafePtr(), (float*)spectrumIm.GetUnsafePtr(), N);
+        _FFT(spectrumRe.ToArray(), spectrumIm.ToArray(), N);
 
         for (int i = 0; i < N; ++i)
         {
@@ -257,7 +258,7 @@ public static unsafe class Algorithm
     }
 
     [BurstCompile]
-    static void _FFT(float* spectrumRe, float* spectrumIm, int N)
+    static void _FFT(float[] spectrumRe, float[] spectrumIm, int N)
     {
         if (N < 2) return;
 
@@ -274,8 +275,8 @@ public static unsafe class Algorithm
             oddIm[i] = spectrumIm[i * 2 + 1];
         }
 
-        _FFT((float*)evenRe.GetUnsafePtr(), (float*)evenIm.GetUnsafePtr(), N / 2);
-        _FFT((float*)oddRe.GetUnsafePtr(),  (float*)oddIm.GetUnsafePtr(), N / 2);
+        _FFT(evenRe.ToArray(), evenIm.ToArray(), N / 2);
+        _FFT(oddRe.ToArray(),  oddIm.ToArray(), N / 2);
 
         for (int i = 0; i < N / 2; ++i)
         {
@@ -306,8 +307,8 @@ public static unsafe class Algorithm
     {
         melSpectrum = new NativeArray<float>(melDiv, Allocator.Temp);
         MelFilterBank(
-            (float*)spectrum.GetUnsafeReadOnlyPtr(),
-            (float*)melSpectrum.GetUnsafePtr(),
+            spectrum.ToArray(),
+            melSpectrum.ToArray(),
             spectrum.Length,
             sampleRate,
             melDiv);
@@ -315,8 +316,8 @@ public static unsafe class Algorithm
 
     [BurstCompile]
     static void MelFilterBank(
-        float* spectrum, 
-        float* melSpectrum,
+        in float[] spectrum, 
+        float[] melSpectrum,
         int len,
         float sampleRate,
         int melDiv)
@@ -357,11 +358,11 @@ public static unsafe class Algorithm
 
     public static void PowerToDb(ref NativeArray<float> array)
     {
-        PowerToDb((float*)array.GetUnsafePtr(), array.Length);
+        PowerToDb(array.ToArray(), array.Length);
     }
 
     [BurstCompile]
-    static void PowerToDb(float* array, int len)
+    static void PowerToDb(float[] array, int len)
     {
         for (int i = 0; i < len; ++i)
         {
@@ -389,15 +390,15 @@ public static unsafe class Algorithm
     {
         cepstrum = new NativeArray<float>(spectrum.Length, Allocator.Temp);
         DCT(
-            (float*)spectrum.GetUnsafeReadOnlyPtr(), 
-            (float*)cepstrum.GetUnsafePtr(),
+            spectrum.ToArray(), 
+            cepstrum.ToArray(),
             spectrum.Length);
     }
 
     [BurstCompile]
     static void DCT(
-        float* spectrum,
-        float* cepstrum,
+        in float[] spectrum,
+        float[] cepstrum,
         int len)
     {
         float a = math.PI / len;
@@ -415,16 +416,16 @@ public static unsafe class Algorithm
 
     public static float Norm(in NativeArray<float> array)
     {
-        return Norm((float*)array.GetUnsafeReadOnlyPtr(), array.Length);
+        return Norm(array.ToArray(), array.Length);
     }
 
     public static float Norm(in NativeSlice<float> slice)
     {
-        return Norm((float*)slice.GetUnsafeReadOnlyPtr(), slice.Length);
+        return Norm(slice.ToArray(), slice.Length);
     }
 
     [BurstCompile]
-    static float Norm(float* array, int len)
+    static float Norm(in float[] array, int len)
     {
         float sum = 0f;
         for (int i = 0; i < len; ++i)
