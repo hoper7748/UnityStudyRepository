@@ -1,12 +1,13 @@
 {
-    "name": "NewAssembly",
+    "name": "Main Assembly",
     "rootNamespace": "",
     "references": [
         "Unity.TextMeshPro",
         "Unity.Burst",
         "Unity.Mathematics",
         "Unity.Timeline",
-        "Unity.Timeline.Editor"
+        "Unity.Timeline.Editor",
+        "SpatialSys.UnitySDK"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
