@@ -4,7 +4,13 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/ChatScene.unity
+    guid: 2cda990e2423bbf4892e6590ba056729
+  - enabled: 0
+    path: Assets/Examples/Space_GolfCourse_Driving/Scenes/GolfCourseDriving.unity
+    guid: 4651f420e3ec94fa8b27b1072e75cec5
   m_configObjects:
     com.unity.addressableassets: {fileID: 11400000, guid: d186915fd3d1002449450aeb3b5d108e,
       type: 2}
