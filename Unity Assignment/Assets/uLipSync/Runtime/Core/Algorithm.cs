@@ -1,7 +1,8 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
-using Unity.Mathematics;
+//using Unity.Mathematics;
+using UnityEngine;
 //using Unity.Collections
 //using Unity.Burst;
 
@@ -22,7 +23,7 @@ public static class Algorithm
         float max = 0f;
         for (int i = 0; i < len; ++i)
         {
-            max = math.max(max, math.abs(array[i]));
+            max = Mathf.Max(max, Mathf.Abs(array[i]));
         }
         return max;
     }
@@ -40,7 +41,7 @@ public static class Algorithm
         {
             average += array[i] * array[i];
         }
-        return math.sqrt(average / len);
+        return Mathf.Sqrt(average / len);
     }
 
     public static void CopyRingBuffer(in NativeArray<float> input, out NativeArray<float> output, int startSrcIndex)
@@ -66,12 +67,12 @@ public static class Algorithm
     {
         Normalize(array, array.Length, value);
     }
-
+        const float EPSILON = 1.1920928955078125e-7f;
     //[BurstCompile]
     static void Normalize(NativeArray<float> array, int len, float value = 1f)
     {
         float max = GetMaxValue(array, len);
-        if (max < math.EPSILON) return;
+        if (max < Mathf.Epsilon) return;
         float r = value / max;
         for (int i = 0; i < len; ++i)
         {
@@ -86,7 +87,7 @@ public static class Algorithm
 
         var tmp = new NativeArray<float>(data, Allocator.Temp);
 
-        int n = (int)math.round(3.1f / range);
+        int n = (int)MathF.Round(3.1f / range);
         if ((n + 1) % 2 == 0) n += 1;
         var b = new NativeArray<float>(n, Allocator.Temp);
 
@@ -108,8 +109,8 @@ public static class Algorithm
         for (int i = 0; i < bLen; ++i)
         {
             float x = i - (bLen - 1) / 2f;
-            float ang = 2f * math.PI * cutoff * x;
-            b[i] = 2f * cutoff * math.sin(ang) / ang;
+            float ang = 2f * Mathf.PI * cutoff * x;
+            b[i] = 2f * cutoff * Mathf.Sin(ang) / ang;
         }
 
         for (int i = 0; i < len; ++i)
@@ -143,7 +144,7 @@ public static class Algorithm
         else
         {
             float df = (float)sampleRate / targetSampleRate;
-            int n = (int)math.round(input.Length / df);
+            int n = (int)Mathf.Round(input.Length / df);
             output = new NativeArray<float>(n, Allocator.Temp);
             DownSample2(
                 input, 
@@ -169,12 +170,12 @@ public static class Algorithm
         for (int j = 0; j < outputLen; ++j)
         {
             float fIndex = df * j;
-            int i0 = (int)math.floor(fIndex);
-            int i1 = math.min(i0, inputLen - 1);
+            int i0 = (int)Mathf.Floor(fIndex);
+            int i1 = Math.Min(i0, inputLen - 1);
             float t = fIndex - i0;
             float x0 = input[i0];
             float x1 = input[i1];
-            output[j] = math.lerp(x0, x1, t);
+            output[j] = Mathf.Lerp(x0, x1, t);
         }
     }
 
@@ -209,7 +210,7 @@ public static class Algorithm
         for (int i = 0; i < len; ++i)
         {
             float x = (float)i / (len - 1);
-            array[i] *= 0.54f - 0.46f * math.cos(2f * math.PI * x);
+            array[i] *= 0.54f - 0.46f * Mathf.Cos(2f * Mathf.PI * x);
         }
     }
 
@@ -248,13 +249,16 @@ public static class Algorithm
             spectrumRe[i] = data[i];
         }
         _FFT(spectrumRe, spectrumIm, N);
-
+            Vector2 temp;
         for (int i = 0; i < N; ++i)
         {
             float re = spectrumRe[i];
             float im = spectrumIm[i];
-            spectrum[i] = math.length(new float2(re, im));
-        }
+                temp = new Vector2(re, im);
+                //spectrum[i] = math.length(new Vector2(re, im));
+
+                spectrum[i] =  Mathf.Sqrt(Vector2.Dot(temp, temp));
+                }
 
         spectrumRe.Dispose();
         spectrumIm.Dispose();
@@ -287,9 +291,9 @@ public static class Algorithm
             float ei = evenIm[i];
             float or = oddRe[i];
             float oi = oddIm[i];
-            float theta = -2f * math.PI * i / N;
-            var c = new float2(math.cos(theta), math.sin(theta));
-            c = new float2(c.x * or - c.y * oi, c.x * oi + c.y * or);
+            float theta = -2f * Mathf.PI * i / N;
+            var c = new Vector2(Mathf.Cos(theta), Mathf.Sin(theta));
+            c = new Vector2(c.x * or - c.y * oi, c.x * oi + c.y * or);
             spectrumRe[i] = er + c.x;
             spectrumIm[i] = ei + c.y;
             spectrumRe[N / 2 + i] = er - c.x;
@@ -341,9 +345,9 @@ public static class Algorithm
             float fCenter = ToHz(melCenter);
             float fEnd = ToHz(melEnd);
 
-            int iBegin = (int)math.ceil(fBegin / df);
-            int iCenter = (int)math.round(fCenter / df);
-            int iEnd = (int)math.floor(fEnd / df);
+            int iBegin = (int)Math.Ceiling(fBegin / df);
+            int iCenter = (int)Mathf.Round(fCenter / df);
+            int iEnd = (int)Mathf.Floor(fEnd / df);
 
             float sum = 0f;
             for (int i = iBegin + 1; i <= iEnd; ++i)
@@ -369,7 +373,7 @@ public static class Algorithm
     {
         for (int i = 0; i < len; ++i)
         {
-            array[i] = 10f * math.log10(array[i]);
+            array[i] = 10f * Mathf.Log10(array[i]);
         }
     }
 
@@ -377,14 +381,14 @@ public static class Algorithm
     static float ToMel(float hz, bool slaney = false)
     {
         float a = slaney ? 2595f : 1127f;
-        return a * math.log(hz / 700f + 1f);
+        return a * Mathf.Log(hz / 700f + 1f);
     }
 
     //[BurstCompile]
     static float ToHz(float mel, bool slaney = false)
     {
         float a = slaney ? 2595f : 1127f;
-        return 700f * (math.exp(mel / a) - 1f);
+        return 700f * (Mathf.Exp(mel / a) - 1f);
     }
 
     public static void DCT(
@@ -404,14 +408,14 @@ public static class Algorithm
         NativeArray<float> cepstrum,
         int len)
     {
-        float a = math.PI / len;
+        float a = Mathf.PI / len;
         for (int i = 0; i < len; ++i)
         {
             float sum = 0f;
             for (int j = 0; j < len; ++j)
             {
                 float ang = (j + 0.5f) * i * a;
-                sum += spectrum[j] * math.cos(ang);
+                sum += spectrum[j] * Mathf.Cos(ang);
             }
             cepstrum[i] = sum;
         }
@@ -436,7 +440,7 @@ public static class Algorithm
             float x = array[i];
             sum += x * x;
         }
-        return math.sqrt(sum);
+        return Mathf.Sqrt(sum);
     }
 }
 

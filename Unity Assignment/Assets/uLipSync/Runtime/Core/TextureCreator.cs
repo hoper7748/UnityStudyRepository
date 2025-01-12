@@ -1,6 +1,6 @@
 using System;
 using UnityEngine;
-using Unity.Burst;
+//using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -30,7 +30,7 @@ public static class TextureCreator
         tex.Apply();
     }
 
-    [BurstCompile]
+    //[BurstCompile]
     struct CreateBakedDataWaveTextureJob : IJob
     {
         [WriteOnly] public NativeArray<Color32> texColors;
@@ -113,7 +113,7 @@ public static class TextureCreator
         return tex;
     }
 
-    [BurstCompile]
+    //[BurstCompile]
     struct CreateMfccTextureJob : IJob
     {
         [WriteOnly] public NativeArray<Color32> texColors;

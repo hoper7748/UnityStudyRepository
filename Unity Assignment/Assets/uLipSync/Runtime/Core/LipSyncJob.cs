@@ -1,12 +1,12 @@
 using Unity.Jobs;
 using Unity.Collections;
 using Unity.Mathematics;
-using Unity.Burst;
+//using Unity.Burst;
 
 namespace uLipSync
 {
 
-[BurstCompile]
+//[BurstCompile]
 public struct LipSyncJob : IJob
 {
     public struct Info

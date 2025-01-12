@@ -3,8 +3,6 @@ using UnityEngine;
 using System;
 using UnityEngine.UI;
 using TMPro;
-using static System.Net.Mime.MediaTypeNames;
-
 
 namespace ChatUIProject
 {

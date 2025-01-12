@@ -1,5 +1,5 @@
 using UnityEngine;
-using Unity.Burst;
+//using Unity.Burst;
 using System.Collections.Generic;
 
 namespace uLipSync
@@ -28,7 +28,7 @@ public struct BakedFrame
     }
 }
 
-[BurstCompile]
+//[BurstCompile]
 [CreateAssetMenu(menuName = Common.AssetName + "/Baked Data")]
 public class BakedData : ScriptableObject
 {
